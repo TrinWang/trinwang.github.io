@@ -28,6 +28,16 @@
 <!-- ===== Favicon (内联 SVG，绿橙渐变 T 标) ===== -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234caf6e'/%3E%3Cstop offset='1' stop-color='%23ff8a3d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Arial,sans-serif' font-size='40' font-weight='bold' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
 
+<!-- ===== Three.js importmap（3D avatar 用）===== -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
 <!-- ===== Structured Data (JSON-LD, 帮搜索引擎理解) ===== -->
 <script type="application/ld+json">
 {
@@ -126,7 +136,7 @@
     width:26px;height:26px;border-radius:9px;
     background:linear-gradient(135deg,var(--green) 0%,var(--orange) 130%);
     display:flex;align-items:center;justify-content:center;
-    color:var(--cream);font-size:13px;font-weight:800;font-family:var(--f-body);
+    color:var(--cream);font-size:9px;font-weight:800;font-family:var(--f-body);
     box-shadow:0 4px 10px rgba(76,175,110,0.4);
     transform:rotate(-8deg);
   }
@@ -243,12 +253,12 @@
   .orbit::after{content:'';position:absolute;inset:9%;border:1px dashed rgba(255,138,61,0.16);border-radius:50%;}
 
   .avatar-center{
-    position:relative;z-index:3;
-    width:min(380px,52vw);height:min(490px,62vh);min-height:340px;
-    display:flex;align-items:flex-end;justify-content:center;
+    position:relative;z-index:6;
+    width:min(560px,74vw);height:min(560px,72vh);min-height:420px;
+    display:flex;align-items:center;justify-content:center;
   }
   .avatar-glow{
-    position:absolute;bottom:6%;left:50%;transform:translateX(-50%);width:84%;height:46px;
+    position:absolute;bottom:-4%;left:50%;transform:translateX(-50%);width:84%;height:46px;
     background:radial-gradient(ellipse at center,rgba(76,175,110,0.5) 0%,rgba(255,138,61,0.25) 45%,transparent 72%);
     filter:blur(16px);border-radius:50%;animation:glowPulse 5s ease-in-out infinite;
   }
@@ -273,13 +283,25 @@
   @keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-10px) rotate(6deg)}}
   .avatar-placeholder .ph-text{font-size:14px;line-height:1.7;font-family:var(--f-mono);letter-spacing:0.05em;}
   .avatar-placeholder .ph-text b{color:var(--green-deep);font-weight:600;}
-  .avatar-img{
-    position:relative;z-index:2;max-width:100%;max-height:100%;object-fit:contain;
-    filter:drop-shadow(0 28px 36px rgba(35,74,56,0.28)) drop-shadow(0 10px 16px rgba(255,138,61,0.2));
+  /* 3D avatar canvas：真 3D 模型渲染容器 */
+  .avatar-3d{
+    position:relative;z-index:2;width:min(540px,72vw);height:min(540px,68vh);min-height:400px;
+    display:block;border-radius:18px;cursor:grab;
     animation:floatAvatar 6s ease-in-out infinite;
   }
-  @keyframes floatAvatar{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
-  .avatar-img.hidden{display:none;}
+  .avatar-3d:active{cursor:grabbing;}
+  @keyframes floatAvatar{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-14px)}
+  }
+  .avatar-3d-loading{
+    position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.08em;
+    color:var(--green-deep);background:rgba(255,253,247,0.8);
+    padding:8px 16px;border-radius:100px;pointer-events:none;
+    transition:opacity 0.4s ease;
+  }
+  .avatar-3d-loading.hidden{opacity:0;}
 
   /* 便利贴标签 —— 纸质、旋转、多层投影、顶部胶带 */
   .tag{
@@ -371,6 +393,419 @@
   .d1{animation-delay:0.7s;} .d2{animation-delay:0.9s;} .d3{animation-delay:1.1s;} .d4{animation-delay:1.3s;}
   @keyframes rise{to{opacity:1;transform:translateY(0);}}
 
+  /* ===== About Me / 人生轨迹时间线 ===== */
+  .about{
+    position:relative;z-index:2;
+    padding:120px 6vw 100px;
+    min-height:100vh;
+  }
+  .about__head{max-width:780px;margin:0 auto 64px;text-align:center;}
+  .about__eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+    color:var(--green-deep);letter-spacing:0.16em;text-transform:uppercase;
+    background:rgba(255,253,247,0.7);padding:7px 15px;border-radius:100px;
+    border:1px solid rgba(76,175,110,0.28);margin-bottom:18px;
+  }
+  .about__title{
+    font-family:'Fraunces',serif;font-weight:800;
+    font-variation-settings:'opsz' 144,'SOFT' 100;
+    font-size:clamp(34px,6vw,68px);
+    letter-spacing:-0.035em;line-height:1.05;color:var(--ink);
+  }
+  .about__title .accent{color:var(--orange-deep);font-style:italic;}
+  .about__sub{
+    margin-top:16px;font-family:'DM Sans',sans-serif;
+    font-size:clamp(15px,1.6vw,18px);color:var(--ink-soft);
+    max-width:560px;margin-left:auto;margin-right:auto;line-height:1.6;
+  }
+
+  .timeline{
+    position:relative;max-width:1180px;margin:0 auto;
+    padding:20px 0 40px;
+  }
+  /* 中央竖线 */
+  .timeline__spine{
+    position:absolute;left:50%;top:0;bottom:0;width:2px;
+    transform:translateX(-50%);
+    background:linear-gradient(180deg, transparent 0%, rgba(76,175,110,0.3) 8%, rgba(76,175,110,0.3) 92%, transparent 100%);
+    border-radius:2px;
+  }
+  /* 竖线进度条（滚动时填充） */
+  .timeline__progress{
+    position:absolute;left:50%;top:0;width:2px;height:0;
+    transform:translateX(-50%);
+    background:linear-gradient(180deg, var(--orange) 0%, var(--green) 100%);
+    border-radius:2px;
+    box-shadow:0 0 12px rgba(255,138,61,0.5);
+    transition:height 0.1s linear;
+    z-index:1;
+  }
+
+  .tnode{
+    position:relative;display:grid;
+    grid-template-columns:1fr 96px 1fr;
+    align-items:center;margin-bottom:48px;
+  }
+  .tnode:last-child{margin-bottom:0;}
+
+  /* 节点圆点（中央） */
+  .tnode__dot{
+    grid-column:2;justify-self:center;
+    width:22px;height:22px;border-radius:50%;
+    background:var(--cream);
+    border:3px solid rgba(76,175,110,0.45);
+    box-shadow:0 4px 12px rgba(35,74,56,0.15);
+    position:relative;z-index:3;
+    transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  /* 激活的节点：变橙+发光+放大 */
+  .tnode.is-on .tnode__dot{
+    background:var(--orange);border-color:var(--orange-deep);
+    transform:scale(1.25);
+    box-shadow:0 0 0 6px rgba(255,138,61,0.18),0 0 20px rgba(255,138,61,0.6);
+  }
+  .tnode.is-on .tnode__dot::after{
+    content:'';position:absolute;inset:-10px;border-radius:50%;
+    border:2px solid rgba(255,138,61,0.4);
+    animation:ringPulse 2s ease-out infinite;
+  }
+  @keyframes ringPulse{0%{transform:scale(0.8);opacity:0.8}100%{transform:scale(1.8);opacity:0}}
+
+  /* 卡片：左右交替 */
+  .tnode{perspective:1000px;}
+  .tcard{
+    grid-column:1;background:rgba(255,253,247,0.72);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:18px;padding:22px 26px 22px 30px;
+    box-shadow:0 10px 30px rgba(35,74,56,0.1),inset 0 1px 0 rgba(255,255,255,0.9);
+    opacity:0;transform:translateX(-30px);
+    transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1),box-shadow 0.4s ease;
+    position:relative;transform-style:preserve-3d;overflow:hidden;
+  }
+  .tnode:nth-child(even) .tcard{
+    grid-column:3;transform:translateX(30px);padding:22px 30px 22px 26px;
+  }
+  .tnode.is-on .tcard{opacity:1;transform:translateX(0);}
+
+  /* 入场完成后才允许 3D 悬停（避免与入场 translateX 打架） */
+  .tnode.is-on .tcard.is-ready{transition:transform 0.25s ease,box-shadow 0.4s ease;}
+  .tnode.is-on .tcard.is-ready:hover{
+    transform:translateX(0) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateZ(12px);
+    box-shadow:0 22px 50px rgba(35,74,56,0.22),inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  /* 悬停时点亮对应节点圆点（联动） */
+  .tnode:hover .tnode__dot{background:var(--orange-deep);transform:scale(1.35);}
+  .tnode:hover .tnode__dot::after{border-color:var(--orange);}
+
+  /* 章节水印：大号半透明序号 */
+  .tcard::before{
+    content:attr(data-chap);position:absolute;right:14px;top:-8px;
+    font-family:'Agbalumo',sans-serif;font-size:64px;line-height:1;
+    color:rgba(255,138,61,0.07);font-weight:400;pointer-events:none;
+    transition:color 0.4s ease,transform 0.4s ease;
+  }
+  .tcard:hover::before{color:rgba(255,138,61,0.16);transform:translateY(-2px);}
+
+  /* 末卡（滴滴·now）常驻呼吸光 */
+  .tnode.is-finale .tcard{
+    border-color:rgba(255,138,61,0.4);
+    box-shadow:0 10px 30px rgba(35,74,56,0.12),inset 0 1px 0 rgba(255,255,255,0.9),
+               0 0 0 0 rgba(255,138,61,0.5);
+    animation:finaleGlow 3.2s ease-in-out infinite;
+  }
+  @keyframes finaleGlow{
+    0%,100%{box-shadow:0 10px 30px rgba(35,74,56,0.12),inset 0 1px 0 rgba(255,255,255,0.9),0 0 0 0 rgba(255,138,61,0.5);}
+    50%{box-shadow:0 14px 38px rgba(35,74,56,0.16),inset 0 1px 0 rgba(255,255,255,0.9),0 0 28px 4px rgba(255,138,61,0.28);}
+  }
+
+  /* 卡片指向节点的小三角 */
+  .tcard::after{
+    content:'';position:absolute;top:24px;
+    width:14px;height:14px;background:rgba(255,253,247,0.72);
+    border-top:1px solid rgba(255,255,255,0.7);
+    border-right:1px solid rgba(255,255,255,0.7);
+    transform:rotate(45deg);
+  }
+  .tnode:nth-child(odd) .tcard::after{right:-8px;}
+  .tnode:nth-child(even) .tcard::after{left:-8px;transform:rotate(-135deg);}
+
+  .tcard__year{
+    display:inline-block;font-family:'Agbalumo',sans-serif;
+    font-size:14px;color:var(--orange-deep);
+    background:rgba(255,138,61,0.12);padding:3px 10px;border-radius:100px;
+    margin-bottom:8px;font-weight:400;
+  }
+  .tcard__role{
+    font-family:'Fraunces',serif;font-weight:700;
+    font-variation-settings:'opsz' 24,'SOFT' 80;
+    font-size:20px;color:var(--green-deep);line-height:1.2;
+    margin-bottom:2px;letter-spacing:-0.01em;
+  }
+  .tcard__org{
+    font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+    color:var(--ink-soft);margin-bottom:10px;
+  }
+  .tcard__org .tag-mini{
+    display:inline-block;font-size:10px;font-weight:600;
+    padding:2px 7px;border-radius:100px;margin-left:6px;vertical-align:middle;
+    font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;
+  }
+  .tcard__org .tag-mini.work{background:rgba(76,175,110,0.15);color:var(--green-deep);}
+  .tcard__org .tag-mini.edu{background:rgba(255,138,61,0.15);color:var(--orange-deep);}
+  .tcard__desc{
+    font-family:'DM Sans',sans-serif;font-size:13.5px;
+    line-height:1.6;color:var(--ink);font-weight:400;
+  }
+  .tcard__metric{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:10px;font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--green-deep);font-weight:500;
+    background:rgba(76,175,110,0.1);padding:4px 9px;border-radius:6px;
+  }
+  .tcard__metric b{color:var(--orange-deep);font-weight:600;}
+
+  /* ============ PROJECTS coverflow 椭圆轨道 ============ */
+  .projects{padding:96px 5vw 80px;max-width:1080px;margin:0 auto;position:relative;z-index:3;}
+  .projects__head{max-width:780px;margin:0 auto 36px;text-align:center;}
+  .projects__eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+    color:var(--orange-deep);letter-spacing:0.14em;text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .projects__title{
+    font-family:'Fraunces',serif;font-weight:800;
+    font-variation-settings:'opsz' 144,'SOFT' 100;
+    font-size:clamp(32px,4.6vw,52px);line-height:1.1;letter-spacing:-0.025em;
+    color:var(--green-deep);margin-bottom:16px;
+  }
+  .projects__title .accent{color:var(--orange-deep);font-style:italic;}
+  /* 项目标题：一行一行竖排展示，带序号，居中 */
+  .projects__names{
+    list-style:none;margin:0 auto 14px;padding:0;
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+  }
+  .projects__names li{
+    font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+    color:var(--ink-soft);letter-spacing:0.01em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .projects__names li .n{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+    color:var(--orange-deep);opacity:0.7;
+  }
+  .projects__names li b{color:var(--green-deep);font-weight:700;}
+  .projects__sub{
+    font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;
+    line-height:1.6;color:var(--ink-faint);max-width:560px;margin:18px auto 0;
+  }
+
+  /* —— coverflow 椭圆轨道舞台（下弯弧线 ∪）—— */
+  .pflow{
+    position:relative;height:580px;margin:0 auto;
+    perspective:1700px;perspective-origin:50% 30%;
+  }
+  .pflow__stage{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    transform-style:preserve-3d;
+  }
+  /* 卡片：纯实色不透明，暖纸基，无描边与内色统一 */
+  .pcard{
+    position:absolute;width:680px;height:560px;border-radius:10px;
+    background:linear-gradient(135deg,#fffef9 0%,#f5f1e6 100%);
+    border:1px solid transparent;
+    padding:34px 40px;display:flex;flex-direction:column;
+    box-shadow:0 16px 36px rgba(35,74,56,0.16),inset 0 1px 0 #ffffff;
+    transition:transform 0.65s cubic-bezier(0.22,1,0.36,1),
+               box-shadow 0.5s ease,background 0.5s ease;
+    transform-origin:center center;cursor:pointer;backface-visibility:hidden;
+  }
+
+  /* 活跃卡（正中正面）：清晰暖绿白纸，无描边 */
+  .pcard.is-active{
+    background:linear-gradient(140deg,#d8ead9 0%,#edf3e7 100%);
+    box-shadow:0 30px 60px rgba(35,74,56,0.26),inset 0 1px 0 #ffffff;
+  }
+  .pcard.is-active .pcard__cover img{transform:none;}
+  /* 非活跃卡：用纯实色稍浅背景区分焦点，不降饱和不变灰 */
+  .pcard:not(.is-active){
+    background:linear-gradient(135deg,#fbf9f1 0%,#f0ece0 100%);
+  }
+
+  /* —— hover 颜色加深突出（纯实色加深，无描边）—— */
+  .pcard:not(.is-active):hover{
+    background:linear-gradient(135deg,#eef3e8 0%,#e4ecd9 100%);
+    box-shadow:0 22px 44px rgba(35,74,56,0.22),inset 0 1px 0 #ffffff;
+  }
+  .pcard.is-active:hover{
+    background:linear-gradient(140deg,#c9e0cb 0%,#e2eede 100%);
+    box-shadow:0 36px 68px rgba(35,74,56,0.32),inset 0 1px 0 #ffffff;
+  }
+
+  /* —— 封面图：白底填满框，照片缩小居中，logo 跟着缩小 1/3 —— */
+  .pcard__cover{
+    position:relative;height:230px;overflow:hidden;margin-bottom:32px;
+    border:none;border-radius:6px;
+    background:#ffffff;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pcard__cover img{
+    max-width:48%;max-height:92%;width:auto;height:auto;
+    object-fit:contain;display:block;border-radius:4px;
+    transition:transform 0.65s cubic-bezier(0.16,1,0.3,1);
+  }
+  .pcard__cover .idx{
+    position:absolute;right:14px;bottom:8px;z-index:2;
+    font-family:'Agbalumo',sans-serif;font-size:34px;line-height:1;
+    color:#fffdf7;text-shadow:0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  /* —— 正文：背景·方法·结果 —— */
+  .pcard__body{flex:1;display:flex;flex-direction:column;}
+  .pcard__title{
+    font-family:'Fraunces',serif;font-weight:700;
+    font-variation-settings:'opsz' 24,'SOFT' 80;
+    font-size:22px;line-height:1.2;color:var(--green-deep);
+    letter-spacing:-0.01em;margin-bottom:16px;
+  }
+  .pcard__role{
+    font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;
+    color:var(--ink-faint);margin-bottom:14px;
+  }
+  .pcard__role b{color:var(--ink-soft);font-weight:700;}
+  .pcard__bmr{display:flex;flex-direction:column;gap:13px;flex:1;}
+  .pcard__bmr .row{display:flex;gap:12px;align-items:flex-start;}
+  .pcard__bmr .lbl{
+    flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+    letter-spacing:0.08em;text-transform:uppercase;
+    padding:3px 8px;margin-top:2px;min-width:40px;text-align:center;border-radius:4px;
+  }
+  .pcard__bmr .lbl.bg{background:rgba(76,175,110,0.18);color:var(--green-deep);}
+  .pcard__bmr .lbl.mt{background:rgba(255,138,61,0.18);color:var(--orange-deep);}
+  .pcard__bmr .lbl.rs{background:rgba(31,67,50,0.12);color:var(--green-deep);}
+  .pcard__bmr .txt{
+    font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:400;
+    line-height:1.65;letter-spacing:0.005em;color:var(--ink);
+  }
+  .pcard__bmr .txt b{color:var(--orange-deep);font-weight:600;}
+
+  /* see more（居中标签块，默认中绿、hover 深绿加深特效） */
+  .pcard__btn{
+    align-self:center;margin-top:18px;
+    font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+    color:var(--green-deep);background:#a8d8bb;
+    border:1px solid transparent;cursor:pointer;
+    padding:7px 18px;border-radius:6px;
+    transition:background 0.28s ease,color 0.28s ease,border-color 0.28s ease,box-shadow 0.28s ease,transform 0.12s ease;
+    letter-spacing:0.02em;
+  }
+  /* hover：保持深绿实色 + 白字 */
+  .pcard__btn:hover{
+    background:#4caf6e;border-color:#3d9a5e;
+    color:#fffdf7;box-shadow:0 6px 16px rgba(76,175,110,0.32);
+  }
+  /* active（按下）：最深绿实底 + 微缩 */
+  .pcard__btn:active{
+    background:var(--green-deep);color:var(--cream);
+    border-color:var(--green-deep);transform:translateY(1px) scale(0.97);
+    box-shadow:0 2px 6px rgba(31,67,50,0.42);
+  }
+
+  /* 轨道左右切换按钮 */
+  .pflow__nav{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:8px;}
+  .pflow__btn{
+    width:42px;height:42px;border-radius:50%;cursor:pointer;
+    border:1px solid rgba(31,67,50,0.18);background:var(--cream);
+    color:var(--green-deep);font-size:20px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;transition:all 0.3s ease;
+  }
+  .pflow__btn:hover{background:var(--green);color:var(--cream);border-color:var(--green);}
+  .pflow__count{
+    font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
+    color:var(--ink-soft);min-width:48px;text-align:center;
+  }
+  .pflow__count b{color:var(--orange-deep);}
+
+  /* —— 详情 Modal —— */
+  .pmodal{
+    position:fixed;inset:0;z-index:1000;display:none;
+    align-items:center;justify-content:center;padding:5vh 5vw;
+  }
+  .pmodal.is-open{display:flex;}
+  .pmodal__overlay{
+    position:absolute;inset:0;background:rgba(20,40,30,0.55);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    opacity:0;transition:opacity 0.3s ease;
+  }
+  .pmodal.is-open .pmodal__overlay{opacity:1;}
+  .pmodal__panel{
+    position:relative;max-width:680px;width:100%;max-height:86vh;overflow-y:auto;
+    background:var(--cream);border-radius:22px;
+    box-shadow:0 30px 80px rgba(20,40,30,0.4);
+    transform:translateY(24px) scale(0.97);opacity:0;
+    transition:transform 0.4s cubic-bezier(0.16,1,0.3,1),opacity 0.4s ease;
+  }
+  .pmodal.is-open .pmodal__panel{transform:translateY(0) scale(1);opacity:1;}
+  .pmodal__close{
+    position:absolute;right:16px;top:16px;z-index:5;
+    width:36px;height:36px;border-radius:50%;cursor:pointer;
+    background:rgba(255,253,247,0.9);border:1px solid rgba(31,67,50,0.15);
+    color:var(--ink-soft);font-size:18px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;
+  }
+  .pmodal__close:hover{background:var(--orange);color:var(--cream);border-color:var(--orange);transform:rotate(90deg);}
+  .pmodal__cover{width:100%;height:200px;object-fit:cover;display:block;border-radius:22px 22px 0 0;}
+  .pmodal__inner{padding:26px 32px 32px;}
+  .pmodal__type{
+    display:inline-block;font-family:'JetBrains Mono',monospace;
+    font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+    padding:3px 9px;border-radius:100px;margin-bottom:12px;
+  }
+  .pmodal__type.agent{background:rgba(76,175,110,0.15);color:var(--green-deep);}
+  .pmodal__type.eval{background:rgba(255,138,61,0.15);color:var(--orange-deep);}
+  .pmodal__type.biz{background:rgba(31,67,50,0.1);color:var(--green-deep);}
+  .pmodal__title{
+    font-family:'Fraunces',serif;font-weight:700;
+    font-variation-settings:'opsz' 24,'SOFT' 80;
+    font-size:24px;line-height:1.2;color:var(--green-deep);margin-bottom:4px;
+  }
+  .pmodal__role{
+    font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+    color:var(--ink-faint);margin-bottom:18px;
+  }
+  .pmodal__role b{color:var(--ink-soft);font-weight:700;}
+  .pmodal__section{margin-bottom:18px;}
+  .pmodal__h{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+    letter-spacing:0.1em;text-transform:uppercase;color:var(--orange-deep);
+    margin-bottom:6px;display:flex;align-items:center;gap:7px;
+  }
+  .pmodal__h::before{content:'';width:14px;height:2px;background:var(--orange);border-radius:2px;}
+  .pmodal__p{
+    font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:400;
+    line-height:1.7;color:var(--ink);
+  }
+  .pmodal__p b{color:var(--green-deep);font-weight:700;}
+  .pmodal__p .hl{color:var(--orange-deep);font-weight:600;}
+  .pmodal__stack{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .pmodal__stack span{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;
+    padding:3px 8px;border-radius:5px;background:rgba(31,67,50,0.06);color:var(--ink-soft);
+  }
+  .pmodal__metrics{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+    padding:16px;border-radius:14px;background:rgba(76,175,110,0.07);margin-top:6px;
+  }
+  .pmodal__metric{display:flex;flex-direction:column;gap:2px;}
+  .pmodal__metric .num{
+    font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green-deep);
+  }
+  .pmodal__metric .num.o{color:var(--orange-deep);}
+  .pmodal__metric .lbl{
+    font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;color:var(--ink-soft);line-height:1.4;
+  }
+
   @media (max-width:820px){
     .stage{padding:88px 5vw 3vh;}
     .orbit{width:97vw;height:64vh;}
@@ -380,6 +815,22 @@
     .badge{width:78px;height:78px;top:-6px;right:-6px;}
     .float-leaf{display:none;}
     .intro{font-size:15px;}
+    /* 时间线移动端：竖线靠左，卡片单列右移 */
+    .about{padding:96px 5vw 80px;}
+    .timeline__spine{left:22px;transform:none;}
+    .timeline__progress{left:22px;transform:none;}
+    .tnode{grid-template-columns:44px 1fr;gap:14px;margin-bottom:32px;}
+    .tnode__dot{grid-column:1;justify-self:center;width:18px;height:18px;}
+    .tcard,.tnode:nth-child(even) .tcard{grid-column:2;transform:translateX(20px);}
+    .tnode.is-on .tcard{transform:translateX(0);}
+    .tcard::after,.tnode:nth-child(even) .tcard::after{left:-8px;right:auto;transform:rotate(-135deg);}
+    /* project coverflow 移动端：单卡显示，藏掉轨道两侧 */
+    .pflow{height:auto;perspective:none;}
+    .pcard{position:relative;width:88vw;max-width:400px;height:auto;min-height:420px;
+      transform:none !important;opacity:1 !important;z-index:auto;}
+    .pcard:not(.is-active){display:none;}
+    .pmodal__inner{padding:22px 20px 26px;}
+    .pmodal__metrics{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -428,7 +879,6 @@
     </header>
 
     <section class="avatar-section">
-      <div class="orbit"></div>
 
       <svg class="float-leaf lf1" width="24" height="24" viewBox="0 0 24 24" fill="#4caf6e"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>
       <svg class="float-leaf lf2" width="20" height="20" viewBox="0 0 24 24" fill="#ff8a3d"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>
@@ -439,20 +889,9 @@
       <span class="tag post-cream t3 reveal-up d3"><span class="label"><span class="dot"></span>Data-Driven</span></span>
 
       <div class="avatar-center reveal-up d4">
-        <div class="badge">
-          <svg viewBox="0 0 100 100" width="98" height="98">
-            <defs><path id="badgeCircle" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs>
-            <text><textPath href="#badgeCircle" startOffset="0">AVAILABLE 2026 · FOR HIRE · </textPath></text>
-          </svg>
-          <div class="core">★</div>
-        </div>
         <div class="avatar-glow"></div>
-        <div class="avatar-disc"></div>
-        <div class="avatar-placeholder" id="avatarPlaceholder">
-          <div class="ph-icon">🛹</div>
-          <div class="ph-text"><b>3D avatar</b><br>coming soon</div>
-        </div>
-        <img class="avatar-img hidden" id="avatarImg" alt="Trin Wang">
+        <canvas id="avatar3d" class="avatar-3d" aria-label="3D avatar"></canvas>
+        <div class="avatar-3d-loading" id="avatar3dLoading">loading 3D…</div>
       </div>
 
       <span class="tag post-cream t4 reveal-up d3"><span class="label"><span class="dot"></span>Intermittent Humor</span></span>
@@ -460,6 +899,183 @@
       <span class="tag post-cream t6 reveal-up d3"><span class="label"><span class="dot"></span>Metrics &amp; Eval</span></span>
     </section>
   </section>
+
+  <!-- ============ ABOUT ME · 人生轨迹动态时间线 ============ -->
+  <section class="about" id="about">
+    <div class="about__head">
+      <p class="about__eyebrow">my journey</p>
+      <h2 class="about__title">The road that brought me <span class="accent">here</span></h2>
+      <p class="about__sub">从信管本科到智驾数据科学，一路把业务问题翻译成可量化的指标与自动化的流程。</p>
+    </div>
+
+    <div class="timeline" id="timeline">
+      <div class="timeline__spine"></div>
+      <div class="timeline__progress" id="tlProgress"></div>
+
+      <!-- 1 本科 -->
+      <div class="tnode">
+        <div class="tnode__dot"></div>
+        <div class="tcard" data-chap="01">
+          <span class="tcard__year">2018 — 2022</span>
+          <h3 class="tcard__role">信息管理与信息系统 · 本科</h3>
+          <p class="tcard__org">天津工业大学（双一流）<span class="tag-mini edu">Education</span></p>
+          <p class="tcard__desc">前端 JS/CSS/HTML 与后端 Java 一起学，独立完成宠物商店管理系统——从需求调研到 6 大功能模块全链路交付。在这里打下"前后端全栈 + 系统设计"的工程底子，后面所有的技术落地都从这套基本功长出来。</p>
+          <p class="tcard__metric">独立交付 <b>6</b> 大功能模块 · 全链路闭环</p>
+        </div>
+      </div>
+
+      <!-- 2 明源云 -->
+      <div class="tnode">
+        <div class="tnode__dot"></div>
+        <div class="tcard" data-chap="02">
+          <span class="tcard__year">2023</span>
+          <h3 class="tcard__role">实施顾问 · SaaS 解决方案落地</h3>
+          <p class="tcard__org">明源云<span class="tag-mini work">Work</span></p>
+          <p class="tcard__desc">作为乙方顾问驻场房地产客户，主导 3 家企业 ERP 系统的架构搭建、配置与交付。这段经历沉淀出"把复杂系统逻辑翻译成业务语言"的能力——后来做数据分析、写 Agent，都靠这套把技术讲给业务听的功夫。</p>
+          <p class="tcard__metric">交付 <b>3</b> 家企业 ERP · 服务续签 <b>6</b> 家</p>
+        </div>
+      </div>
+
+      <!-- 3 南大 -->
+      <div class="tnode">
+        <div class="tnode__dot"></div>
+        <div class="tcard" data-chap="03">
+          <span class="tcard__year">2024 — 2027</span>
+          <h3 class="tcard__role">电子商务 · 硕士</h3>
+          <p class="tcard__org">南京大学（985）<span class="tag-mini edu">Education</span></p>
+          <p class="tcard__desc">主修机器学习、大数据挖掘与统计学，用 Python 爬虫 + NLP 分析电商评论情感。追踪平台经济与二手交易方向产出两篇论文。统计与建模的方法论在这里成型，让后面的数据工作有了"不只是取数、而是能检验"的底子。</p>
+          <p class="tcard__metric">发表 <b>JECR</b> 期刊论文（2025.05）+ <b>CNAIS</b> 会议论文（2025.09）</p>
+        </div>
+      </div>
+
+      <!-- 4 阿里 -->
+      <div class="tnode">
+        <div class="tnode__dot"></div>
+        <div class="tcard" data-chap="04">
+          <span class="tcard__year">2025.02 — 2025.06</span>
+          <h3 class="tcard__role">闲鱼循环商店 · 项目研究员</h3>
+          <p class="tcard__org">阿里巴巴<span class="tag-mini work">Work</span></p>
+          <p class="tcard__desc">维护循环商店数据库，结合问卷深挖商品上架、库存周转等 C2B2C 场景痛点，定位影响新品上架速度的关键瓶颈，推动优化方案落地。第一次完整跑通"数据 → 痛点定位 → 方案 → 业务采纳"，这套闭环后来在曹操、滴滴反复用上。</p>
+          <p class="tcard__metric">优化方案 <b>被项目团队采纳</b> 落地</p>
+        </div>
+      </div>
+
+      <!-- 5 曹操 -->
+      <div class="tnode">
+        <div class="tnode__dot"></div>
+        <div class="tcard" data-chap="05">
+          <span class="tcard__year">2025.10 — 2026.04</span>
+          <h3 class="tcard__role">策略运营</h3>
+          <p class="tcard__org">曹操出行（吉利优行）<span class="tag-mini work">Work</span></p>
+          <p class="tcard__desc">守底线——搭核心指标看板、建异动根因链路；求盈利——用 SQL 漏斗定位机场场站"响应→成单"28% 流失节点；精平衡——基于响应率与计占比设计动态调价，AB 验证后全量上线。把"指标体系 + 漏斗 + AB 验证"这套数据驱动决策的手法彻底跑熟。</p>
+          <p class="tcard__metric">毛利率周波动率 <b>6.8%→4.2%</b> · 机场完单率 <b>62%→71%</b> · AB 完单率 <b>+4.2pp</b></p>
+        </div>
+      </div>
+
+      <!-- 6 滴滴 -->
+      <div class="tnode is-finale">
+        <div class="tnode__dot"></div>
+        <div class="tcard" data-chap="06">
+          <span class="tcard__year">2026.07 — now</span>
+          <h3 class="tcard__role">自动驾驶 · AI 数据科学实习生</h3>
+          <p class="tcard__org">滴滴出行<span class="tag-mini work">Work</span></p>
+          <p class="tcard__desc">独立设计开发多子代理 Skill 系统，经 MCP 串联数仓、问题追踪、仿真三类平台，跑通智驾版本回退的发现→定位→仿真验证端到端自动闭环；同时主导研发让行功能指标，把"让行是否合理"变成可量化标尺。过去攒下的业务理解、数据手法和工程能力，在这里汇成一套 AI Agent 落地能力。</p>
+          <p class="tcard__metric">回退发现时长 <b>4h→0.5h</b> · SQL 自动生成成功率 <b>65%→92%</b> · 仿真累计 <b>2000+</b> 次</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ PROJECTS 亮眼前瞻项目 ============ -->
+  <section class="projects" id="project">
+    <div class="projects__head">
+      <p class="projects__eyebrow">selected work</p>
+      <h2 class="projects__title">Things I <span class="accent">built &amp; measured</span></h2>
+      <ul class="projects__names">
+        <li><span class="n">01</span><b>版本回退监控 Agent开发</b></li>
+        <li><span class="n">02</span><b>让行功能指标体系构建</b></li>
+        <li><span class="n">03</span><b>场站全链路搭建</b></li>
+      </ul>
+      <p class="projects__sub">从 0 到 1 的 Agent 系统、可量化的评测指标、跑通业务闭环的数据方案——每个项目都用结果说话。</p>
+    </div>
+
+    <!-- coverflow 椭圆轨道 -->
+    <div class="pflow">
+      <div class="pflow__stage" id="pflowStage">
+
+        <!-- 01 版本回退监控 Agent -->
+        <div class="pcard tag-agent" data-key="p1">
+          <div class="pcard__cover">
+            <img src="assets/didi.jpg" alt="滴滴自动驾驶">
+            <span class="idx">01</span>
+          </div>
+          <div class="pcard__body">
+            <h3 class="pcard__title">版本回退监控 Agent开发</h3>
+            <p class="pcard__role">滴滴 · 自动驾驶 · <b>2026.07 — now</b></p>
+            <div class="pcard__bmr">
+              <div class="row"><span class="lbl bg">背景</span><span class="txt">智驾版本周级迭代，回退判断靠人工、单轮滞后约 4h。</span></div>
+              <div class="row"><span class="lbl mt">方法</span><span class="txt">独立设计多子代理系统，经 MCP 串联数仓、问题追踪、仿真三类平台。</span></div>
+              <div class="row"><span class="lbl rs">结果</span><span class="txt">跑通发现→定位→验证闭环，巡检时长大幅压缩。</span></div>
+            </div>
+            <button class="pcard__btn" data-detail="p1">see more</button>
+          </div>
+        </div>
+
+        <!-- 02 让行指标体系 -->
+        <div class="pcard tag-eval" data-key="p2">
+          <div class="pcard__cover">
+            <img src="assets/didi.jpg" alt="滴滴让行指标">
+            <span class="idx">02</span>
+          </div>
+          <div class="pcard__body">
+            <h3 class="pcard__title">让行功能指标体系构建</h3>
+            <p class="pcard__role">滴滴 · 自动驾驶 · <b>2026.07 — now</b></p>
+            <div class="pcard__bmr">
+              <div class="row"><span class="lbl bg">背景</span><span class="txt">让行是否合理长期靠主观判断，缺可量化标尺。</span></div>
+              <div class="row"><span class="lbl mt">方法</span><span class="txt">主导研发让行指标，Python 抽象维度，标注 case 检验区分度。</span></div>
+              <div class="row"><span class="lbl rs">结果</span><span class="txt">完成指标初版维度定义，构建数据飞轮闭环。</span></div>
+            </div>
+            <button class="pcard__btn" data-detail="p2">see more</button>
+          </div>
+        </div>
+
+        <!-- 03 场站漏斗优化 -->
+        <div class="pcard tag-biz" data-key="p3">
+          <div class="pcard__cover">
+            <img src="assets/caocao.jpg" alt="曹操出行场站">
+            <span class="idx">03</span>
+          </div>
+          <div class="pcard__body">
+            <h3 class="pcard__title">场站全链路搭建</h3>
+            <p class="pcard__role">曹操出行 · 策略运营 · <b>2025.10 — 2026.04</b></p>
+            <div class="pcard__bmr">
+              <div class="row"><span class="lbl bg">背景</span><span class="txt">机场、火车站完单率偏低，运力供需错配、流失环节不明。</span></div>
+              <div class="row"><span class="lbl mt">方法</span><span class="txt">SQL 搭建"冒泡-需求-响应-成单"全链路漏斗，定位流失节点。</span></div>
+              <div class="row"><span class="lbl rs">结果</span><span class="txt">输出供需匹配方案，推动机场、火车站场景转化提升。</span></div>
+            </div>
+            <button class="pcard__btn" data-detail="p3">see more</button>
+          </div>
+        </div>
+
+      </div>
+      <div class="pflow__nav">
+        <button class="pflow__btn" id="pflowPrev" aria-label="上一个">‹</button>
+        <span class="pflow__count"><b id="pflowCur">1</b> / <span id="pflowTotal">4</span></span>
+        <button class="pflow__btn" id="pflowNext" aria-label="下一个">›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 项目详情 Modal -->
+  <div class="pmodal" id="pmodal">
+    <div class="pmodal__overlay" data-close></div>
+    <div class="pmodal__panel" id="pmodalPanel">
+      <button class="pmodal__close" data-close aria-label="关闭">×</button>
+      <img class="pmodal__cover" id="pmodalCover" alt="">
+      <div class="pmodal__inner" id="pmodalInner"></div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -589,7 +1205,7 @@
   const CONFIG = {
     phone: atob('MTgyMjk5NzE5NDk='),
     email: atob('NTAyMDI0MDIwMTc2QHNtYWlsLm5qdS5lZHUuY24='),
-    avatar: '',
+    avatar: 'assets/3.glb',
     fillImage: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&q=80&fm=jpg'
   };
 
@@ -746,16 +1362,358 @@
     } catch { window.location.href = 'mailto:' + CONFIG.email; }
   });
 
+  // —— 导航点击：平滑滚动到目标 section ——
   document.querySelectorAll('.nav__link').forEach(link => {
-    link.addEventListener('click', (e) => { e.preventDefault(); });
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = link.getAttribute('data-target');
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   });
 
-  if (CONFIG.avatar) {
-    const img = document.getElementById('avatarImg');
-    img.src = CONFIG.avatar;
-    img.classList.remove('hidden');
-    document.getElementById('avatarPlaceholder').classList.add('hidden');
-  }
+  // —— 时间线：节点逐个点亮 + 进度条填充 + 3D 悬停联动 ——
+  (function initTimeline() {
+    const timeline = document.getElementById('timeline');
+    const progress = document.getElementById('tlProgress');
+    const nodes = document.querySelectorAll('.tnode');
+    if (!timeline || !nodes.length) return;
+
+    // 节点进入视口即点亮（错峰出现，逐个激活）
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('is-on');
+          // 入场动画结束后再启用 3D 悬停，避免和 translateX 打架
+          const card = en.target.querySelector('.tcard');
+          if (card) setTimeout(() => card.classList.add('is-ready'), 720);
+          io.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -20% 0px', threshold: 0.35 });
+    nodes.forEach(n => io.observe(n));
+
+    // 3D 倾斜：鼠标在卡片上的位置 → rotateX/rotateY，悬停同时点亮节点
+    nodes.forEach(node => {
+      const card = node.querySelector('.tcard');
+      if (!card) return;
+      card.addEventListener('pointermove', (e) => {
+        if (!card.classList.contains('is-ready')) return;
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;   // -0.5 ~ 0.5
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.setProperty('--ry', (px * 10).toFixed(2) + 'deg');   // 左右
+        card.style.setProperty('--rx', (-py * 8).toFixed(2) + 'deg');   // 上下
+      });
+      card.addEventListener('pointerleave', () => {
+        card.style.setProperty('--ry', '0deg');
+        card.style.setProperty('--rx', '0deg');
+      });
+    });
+
+    // 进度条：已滚过的时间线高度比例 → 进度条高度%
+    function fillProgress() {
+      const rect = timeline.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const passed = Math.min(Math.max(vh * 0.5 - rect.top, 0), rect.height);
+      const ratio = rect.height > 0 ? (passed / rect.height) * 100 : 0;
+      if (progress) progress.style.height = ratio.toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', fillProgress, { passive: true });
+    window.addEventListener('resize', fillProgress);
+    fillProgress();
+  })();
+
+  // —— 项目 coverflow 椭圆轨道 / 详情 Modal ——
+  (function initProjectModal() {
+    const modal = document.getElementById('pmodal');
+    const stage = document.getElementById('pflowStage');
+    if (!modal) return;
+
+    // —— coverflow：按相对活跃卡的偏移 d 布局所有卡 ——
+    const cards = stage ? Array.from(stage.querySelectorAll('.pcard')) : [];
+    const prevBtn = document.getElementById('pflowPrev');
+    const nextBtn = document.getElementById('pflowNext');
+    const curEl = document.getElementById('pflowCur');
+    const totalEl = document.getElementById('pflowTotal');
+    if (totalEl) totalEl.textContent = cards.length;
+
+    let activeIdx = 0;
+    const isMobile = () => window.matchMedia('(max-width:820px)').matches;
+
+    // 椭圆轨道参数（3 张卡，卡宽 680，下弯弧 ∪）
+    const GAP = 320;      // 横向间距：3 张卡对称展开，两侧露出充分
+    const YARC = 40;      // 弧线高度：中间卡下沉、两侧上抬，形成向下弯的弧
+    const TILT = 32;      // rotateY 透视倾斜度
+    const ZBASE = 30;     // z-index 基准：高于背景光影层，中间卡显著置顶
+
+    function render() {
+      const n = cards.length;
+      cards.forEach((card, i) => {
+        // 环形序号 k：0=活跃，其余按距离排序
+        const k = (i - activeIdx + n) % n;
+        // 对称位置 d：中(0) / 左1(-1) / 右1(+1) …交替展开，左右均衡
+        let d;
+        if (k === 0) d = 0;
+        else if (k % 2 === 1) d = -Math.ceil(k / 2);   // k=1→-1, k=3→-2 …左侧
+        else d = k / 2;                                 // k=2→+1, k=4→+2 …右侧
+        // n=3：k=0→0(中), k=1→-1(左), k=2→+1(右) → 完美左右对称
+        const absd = Math.abs(d);
+
+        // 下弯弧 ∪：中间卡下沉，两侧上抬
+        const x = d * GAP;
+        const y = YARC * (1 - absd);
+        const ry = d === 0 ? 0 : (d > 0 ? -TILT : TILT);
+        const scale = d === 0 ? 1 : 0.9;
+        // 3D 空间物理前移：中间卡 translateZ 正值，确保稳定盖住两侧（z-index 在 preserve-3d 下不可靠）
+        const tz = d === 0 ? 60 : 0;
+        const z = ZBASE - absd;
+        // 3 张全显示且不透明：活跃与两侧均 1.0，绝不透底（实色卡片靠背景色区分焦点）
+        const op = 1;
+
+        card.style.transform = `translateX(${x}px) translateY(${y}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${scale})`;
+        card.style.zIndex = String(z);
+        card.style.opacity = String(op);
+        card.style.pointerEvents = 'auto';
+        card.classList.toggle('is-active', d === 0);
+      });
+      if (curEl) curEl.textContent = activeIdx + 1;
+      if (prevBtn) prevBtn.disabled = false;
+      if (nextBtn) nextBtn.disabled = false;
+    }
+    function go(dir) {
+      const n = cards.length;
+      activeIdx = (activeIdx + dir + n) % n;
+      render();
+    }
+    // 左右按钮
+    if (prevBtn) prevBtn.addEventListener('click', () => go(-1));
+    if (nextBtn) nextBtn.addEventListener('click', () => go(1));
+    // 点击非活跃卡 → 切到它（沿轨道滑到正中）；活跃卡的点击交给 see more 按钮
+    cards.forEach((card, i) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.pcard__btn')) return;
+        if (i !== activeIdx) { activeIdx = i; render(); }
+      });
+    });
+    // 键盘左右
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'ArrowRight') go(1);
+    });
+    // 移动端只显示活跃卡（CSS 已 display:none 其余），但仍需 render 设 is-active
+    render();
+    window.addEventListener('resize', () => { if (!isMobile()) render(); });
+
+    // 详情数据（key 对应 data-detail / data-key）
+    const DETAILS = {
+      p1: {
+        cover: 'assets/didi.jpg',
+        type: 'AI Agent · 独立设计开发', typeClass: 'agent',
+        title: '智驾版本回退监控 Agent 开发',
+        role: '滴滴出行 · 自动驾驶 AI 数据科学 · <b>2026.07 — now</b>',
+        bg: '智驾版本周级迭代，新版上线后需快速判断是否回退并定位到具体空间与问题类别，纯人工巡检覆盖不全且单轮滞后约 <span class="hl">4h</span>。需要一套能自动发现、定位、验证的端到端系统。',
+        mt: '<b>独立设计</b>定时触发的多子代理系统，经 <b>MCP 协议</b>编排数仓查询、问题追踪、仿真三类平台，实现端到端自动闭环。<b>三层子代理 + Skill 编排</b>：参数获取层查版本号与构建 ID，历史巡检结果存档支持版本对比；问题粗筛层按 topic 拉事件，schema 注入 + few-shot 提升生成质量；仿真认证层完成 trip_segment 拼接→配参→发起→Job ID 回查→导出 diff，引入失败重试与结果校验。调优上精简冗余字段、缓存会话、分层隔离上下文，<span class="hl">token↓40%</span>。',
+        rs: '端到端成功率 <span class="hl">60%→88%</span>，失败 case 70% 经一次重试自恢复；单轮巡检 <span class="hl">4h→0.5h</span>；SQL 自动生成成功率 65%→92%、人工修正率 35%→8%；覆盖实习期全部迭代版本，累计预警 2 起回退被算法团队采纳。',
+        stack: ['MCP 协议', 'Skill 编排', '多子代理架构', 'RAG / few-shot', 'SQL 自动生成', 'token 优化', '失败重试与校验', '长期记忆'],
+        metrics: [
+          { num: '88%', cls: 'o', lbl: '端到端成功率（60%→88%）' },
+          { num: '4h→0.5h', cls: '', lbl: '单轮巡检发现时长（↓87.5%）' },
+          { num: '65%→92%', cls: 'o', lbl: 'SQL 自动生成成功率' },
+          { num: '2 起', cls: '', lbl: '累计预警回退被算法团队采纳' }
+        ]
+      },
+      p2: {
+        cover: 'assets/didi.jpg',
+        type: 'Eval · 主导研发', typeClass: 'eval',
+        title: '智驾让行功能指标体系构建',
+        role: '滴滴出行 · 自动驾驶 AI 数据科学 · <b>2026.07 — now</b>',
+        bg: '智驾让行行为是否合理长期依赖主观判断，缺乏可量化标尺，算法优化缺少评测靶子。',
+        mt: '<b>主导研发</b>让行指标，定义"是否让行、让行是否合理、不同情境如何让行"的可量化判定。基于让行场景几何与动力学特征，在开发机用 <b>Python</b> 抽象指标维度（时机、幅度、对交通影响等）；基于标注团队千余条 case 标注集检验区分度，发现盲区后迭代精简维度、补充标注新问题 case 验证整改。',
+        rs: '已完成指标初版维度定义，个人深入观察 <span class="hl">200+ case</span> 驱动维度设计，有效性检验进行中。<b>Roadmap</b>：指标确认后搭可视化看板，接入 Agent 实时监控与异常播报；探索训练分类模型辅助新 case 自动预标注，形成"指标定义→标注→检验→监控→标注自动化"飞轮。',
+        stack: ['指标体系设计', 'Python', '标注迭代', '区分度检验', 'LLM-as-a-Judge', '数据飞轮'],
+        metrics: [
+          { num: '200+', cls: '', lbl: '个人观察 case 驱动维度设计' },
+          { num: '1000+', cls: 'o', lbl: '标注 case 集检验有效性' },
+          { num: '初版', cls: '', lbl: '指标维度定义完成' },
+          { num: '待接入', cls: 'o', lbl: '后续接入版本回退监控' }
+        ]
+      },
+      p3: {
+        cover: 'assets/caocao.jpg',
+        type: 'Data · 从 0 到 1', typeClass: 'biz',
+        title: '场站高潜场景全链路搭建',
+        role: '曹操出行（吉利优行）· 策略运营 · <b>2025.10 — 2026.04</b>',
+        bg: '公司寻求更高盈利空间，机场、火车站等场站完单率偏低、运力供需错配，但流失环节不明。',
+        mt: '用 <b>SQL</b> 搭建<span class="hl">"冒泡-需求-响应-成单"全链路漏斗指标</span>，定位用户缺失环节，发现场站"响应→成单"流失率达 <span class="hl">28%</span>；输出供需匹配与运力调度优化方案。',
+        rs: '机场场景完单率 <span class="hl">62%→71%</span>，火车站乘客单均等待时长 <span class="hl">↓18%</span>，推动场景转化提升。',
+        stack: ['SQL 漏斗', '全链路指标', '供需匹配', '运力调度', '流失定位'],
+        metrics: [
+          { num: '62%→71%', cls: 'o', lbl: '机场场景完单率' },
+          { num: '↓18%', cls: '', lbl: '火车站乘客单均等待时长' },
+          { num: '28%', cls: 'o', lbl: '定位"响应→成单"流失率' },
+          { num: '从 0 到 1', cls: '', lbl: '全链路漏斗模型搭建' }
+        ]
+      },
+      p4: {
+        cover: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1000&q=80&fm=jpg',
+        type: 'Data · AB 验证', typeClass: 'biz',
+        title: '动态定价方案与 AB 验证',
+        role: '曹操出行（吉利优行）· 策略运营 · <b>2025.10 — 2026.04</b>',
+        bg: '节假日与日常供需波动大，需动态调价平衡盈利与合规。',
+        mt: '基于<b>响应率</b>（供需紧张度）与<b>计占比</b>（司机有效工时利用率）两大核心指标，分别针对节假日核心城市与日常诊断出问题的小城设计动态调价规则，开展 <b>AB Test</b> 验证并协同城市团队落地。',
+        rs: 'AB 组完单率 <span class="hl">+4.2pp</span>、单均 GTV <span class="hl">+7.5%</span>，方案全量上线。',
+        stack: ['AB Test', '动态定价', '响应率建模', '计占比分析', '城市运营协同'],
+        metrics: [
+          { num: '+4.2pp', cls: 'o', lbl: 'AB 组完单率' },
+          { num: '+7.5%', cls: '', lbl: 'AB 组单均 GTV' },
+          { num: '全量', cls: 'o', lbl: '方案全量上线' },
+          { num: '2 类', cls: '', lbl: '节假日核心城市 + 日常小城' }
+        ]
+      }
+    };
+
+    // —— 详情 Modal 逻辑 ——
+    const coverEl = document.getElementById('pmodalCover');
+    const innerEl = document.getElementById('pmodalInner');
+    function openModal(key) {
+      const d = DETAILS[key];
+      if (!d || !modal) return;
+      coverEl.src = d.cover;
+      innerEl.innerHTML = `
+        <span class="pmodal__type ${d.typeClass}">${d.type}</span>
+        <h3 class="pmodal__title">${d.title}</h3>
+        <p class="pmodal__role">${d.role}</p>
+        <div class="pmodal__section">
+          <p class="pmodal__h">背景</p>
+          <p class="pmodal__p">${d.bg}</p>
+        </div>
+        <div class="pmodal__section">
+          <p class="pmodal__h">方法</p>
+          <p class="pmodal__p">${d.mt}</p>
+          <div class="pmodal__stack">${d.stack.map(s => `<span>${s}</span>`).join('')}</div>
+        </div>
+        <div class="pmodal__section">
+          <p class="pmodal__h">结果</p>
+          <p class="pmodal__p">${d.rs}</p>
+          <div class="pmodal__metrics">
+            ${d.metrics.map(m => `<div class="pmodal__metric"><span class="num ${m.cls}">${m.num}</span><span class="lbl">${m.lbl}</span></div>`).join('')}
+          </div>
+        </div>`;
+      modal.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+    // 详情按钮
+    document.querySelectorAll('.pcard__btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal(btn.getAttribute('data-detail'));
+      });
+    });
+    // 关闭：点遮罩/×/Esc
+    modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModal));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  })();
+</script>
+
+<script type="module">
+  // ===== 3D avatar：Three.js 加载 glb 模型 =====
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  const AVATAR_GLB = 'assets/3.glb';
+  (async function initAvatar3D() {
+    const canvas = document.getElementById('avatar3d');
+    const loading = document.getElementById('avatar3dLoading');
+    if (!canvas) return;
+
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+    camera.position.set(0, 0.2, 7.5);
+
+    // 灯光：主光暖白 + 补光冷绿 + 边缘暖橙 + 环境光兜底，整体调亮
+    scene.add(new THREE.AmbientLight(0xfffef7, 0.8));
+    scene.add(new THREE.HemisphereLight(0xfffef7, 0x4caf6e, 1.4));
+    const key = new THREE.DirectionalLight(0xffffff, 3.0);
+    key.position.set(3, 5, 4); scene.add(key);
+    const fill = new THREE.DirectionalLight(0x7cc893, 1.4);
+    fill.position.set(-4, 2, 2); scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xff8a3d, 1.8);
+    rim.position.set(0, 3, -5); scene.add(rim);
+
+    // 拖拽旋转（不自动转）
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.autoRotate = false;
+    controls.target.set(0, 0.7, 0);
+
+    let model = null;
+    let baseY = 0;   // 模型垂直基准，动画在基准上叠加颠簸，不硬覆盖
+    try {
+      const gltf = await new GLTFLoader().loadAsync(AVATAR_GLB);
+      model = gltf.scene;
+      // 居中并缩放适配
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const scale = 4.875 / maxDim;  // 放大 1/2（相对原始）
+      model.scale.setScalar(scale);
+      // 用独立向量做居中，不污染 center
+      const offset = center.clone().multiplyScalar(scale);
+      model.position.sub(offset);
+      // 上移让滑板滑轮完整进视野，并记住基准供动画使用
+      model.position.y += 0.8;
+      baseY = model.position.y;
+      scene.add(model);
+      loading.classList.add('hidden');
+    } catch (err) {
+      loading.textContent = '3D 加载失败';
+      console.error('avatar3d load error:', err);
+      return;
+    }
+
+    function resize() {
+      const nw = canvas.clientWidth, nh = canvas.clientHeight;
+      if (nw === 0 || nh === 0) return;
+      renderer.setSize(nw, nh, false);
+      camera.aspect = nw / nh;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+
+    // 滑板前滑动画：原位置不变，身体轻微前倾往复 + 上下颠簸，模拟滑行姿态
+    const skate = { t: 0 };
+    function tick() {
+      controls.update();
+      if (model) {
+        skate.t += 0.018;
+        // 滑行节奏：身体小幅前后摆（绕 Z 轴轻倾）+ 上下颠簸，整体不位移
+        model.rotation.z = Math.sin(skate.t) * 0.05;
+        model.position.y = baseY + Math.abs(Math.sin(skate.t * 2)) * 0.04;
+        model.rotation.x = Math.sin(skate.t * 2) * 0.03;
+      }
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
 </script>
 </body>
 </html>
