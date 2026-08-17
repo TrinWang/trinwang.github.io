@@ -1626,7 +1626,7 @@
   // ===== 3D avatar：Three.js 加载 glb 模型 =====
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-  import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+  import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
   const AVATAR_GLB = 'assets/3.glb';
@@ -1668,9 +1668,7 @@
     let baseY = 0;   // 模型垂直基准，动画在基准上叠加颠簸，不硬覆盖
     try {
       const loader = new GLTFLoader();
-      const draco = new DRACOLoader();
-      draco.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/');
-      loader.setDRACOLoader(draco);
+      loader.setMeshoptDecoder(MeshoptDecoder);  // meshopt 压缩网格解码
       const gltf = await loader.loadAsync(AVATAR_GLB);
       model = gltf.scene;
       // 居中并缩放适配
