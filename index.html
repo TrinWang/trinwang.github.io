@@ -52,7 +52,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Cormorant:wght@400;500;600;700&family=Agbalumo&family=Baloo+2:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Cormorant:wght@400;500;600;700&family=Agbalumo&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg1:#eef7ec; --bg2:#d9efdc; --bg3:#c4e6c9;
@@ -61,7 +61,7 @@
     --cream:#fffdf7; --warm:#f6f0e2;
     --ink:#1f3327; --ink-soft:#4a685a; --ink-faint:#8aa89e; --ink-mist:#c3cfc6;
     --line:rgba(36,59,48,0.10);
-    --radius:22px;
+    --radius-sm:10px; --radius:16px; --radius-lg:24px;
     --f-display:'Fraunces',serif;      /* 统一大标题：所有板块 H2/H3 标题 */
     --f-body:'DM Sans',sans-serif;     /* 统一正文 */
     --f-tag:'Agbalumo',sans-serif;     /* 序号/小标签 */
@@ -71,6 +71,16 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
+  /* 全局键盘 focus 样式：橙色 outline 与 accent 一致 */
+  a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-offset:3px;}
+  /* 公共 eyebrow 胶囊样式（about/projects/draw 三 section 共用） */
+  [class$="__eyebrow"]{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+    color:var(--green-deep);letter-spacing:0.16em;text-transform:uppercase;
+    background:rgba(255,253,247,0.7);padding:7px 15px;border-radius:100px;
+    border:1px solid rgba(76,175,110,0.28);margin-bottom:18px;
+  }
   body{
     font-family:var(--f-body);
     background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%);
@@ -176,16 +186,16 @@
 
   .hero-top{text-align:center;width:100%;}
 
-  /* MaskedHeading —— Fraunces 900 + SOFT 100，粗壮圆润，紧凑 */
+  /* MaskedHeading —— Fraunces 800 + SOFT 50，精致粗壮，紧凑 */
   .mh{
     position:relative;width:100%;margin:0;padding:0;
     line-height:1.0;
     font-family:var(--f-display);
-    font-weight:900;
-    font-variation-settings:'opsz' 144,'SOFT' 100;
+    font-weight:800;
+    font-variation-settings:'opsz' 144,'SOFT' 50;
     font-size:clamp(40px,7vw,104px);
-    letter-spacing:-0.04em;
-    word-spacing:-0.08em;
+    letter-spacing:-0.02em;
+    word-spacing:-0.04em;
     -webkit-font-smoothing:antialiased;
     white-space:nowrap;
     cursor:pointer;user-select:none;
@@ -370,26 +380,21 @@
   /* ===== About Me / 人生轨迹时间线 ===== */
   .about{
     position:relative;z-index:2;
-    padding:160px 6vw 120px;
+    padding:140px 5vw 110px;
     min-height:100vh;
     border-top:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(31,67,50,0.03) 0%,transparent 8%);
   }
   .projects, .draw{
     border-top:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(31,67,50,0.03) 0%,transparent 8%);
   }
-  .about__head{max-width:780px;margin:0 auto 88px;text-align:center;}
-  .about__eyebrow{
-    display:inline-flex;align-items:center;gap:8px;
-    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
-    color:var(--green-deep);letter-spacing:0.16em;text-transform:uppercase;
-    background:rgba(255,253,247,0.7);padding:7px 15px;border-radius:100px;
-    border:1px solid rgba(76,175,110,0.28);margin-bottom:18px;
-  }
+  .about__head{max-width:780px;margin:0 auto 72px;text-align:center;}
   .about__title{
     font-family:var(--f-display);font-weight:800;
     font-variation-settings:'opsz' 144,'SOFT' 100;
-    font-size:clamp(34px,6vw,68px);
-    letter-spacing:-0.035em;line-height:1.05;color:var(--ink);
+    font-size:clamp(34px,6vw,64px);
+    letter-spacing:-0.035em;line-height:1.05;color:var(--green-deep);
   }
   .about__title .accent{color:var(--orange-deep);font-style:italic;}
   .about__sub{
@@ -456,7 +461,7 @@
     grid-column:1;background:rgba(255,253,247,0.72);
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     border:1px solid rgba(255,255,255,0.7);
-    border-radius:18px;padding:24px 28px 24px 32px;
+    border-radius:var(--radius);padding:24px 28px 24px 32px;
     box-shadow:0 2px 6px rgba(36,59,48,0.06),0 18px 40px rgba(36,59,48,0.10),inset 0 1px 0 rgba(255,255,255,0.9);
     opacity:0;transform:translateX(-30px);
     transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1),box-shadow 0.4s ease;
@@ -545,17 +550,12 @@
   .tcard__metric b{color:var(--orange-deep);font-weight:600;}
 
   /* ============ PROJECTS coverflow 椭圆轨道 ============ */
-  .projects{padding:140px 5vw 100px;max-width:1080px;margin:0 auto;position:relative;z-index:3;}
-  .projects__head{max-width:780px;margin:0 auto 56px;text-align:center;}
-  .projects__eyebrow{
-    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
-    color:var(--orange-deep);letter-spacing:0.14em;text-transform:uppercase;
-    margin-bottom:14px;
-  }
+  .projects{padding:140px 5vw 110px;max-width:1080px;margin:0 auto;position:relative;z-index:3;}
+  .projects__head{max-width:780px;margin:0 auto 72px;text-align:center;}
   .projects__title{
     font-family:var(--f-display);font-weight:800;
     font-variation-settings:'opsz' 144,'SOFT' 100;
-    font-size:clamp(32px,4.6vw,52px);line-height:1.1;letter-spacing:-0.025em;
+    font-size:clamp(32px,5vw,56px);line-height:1.1;letter-spacing:-0.025em;
     color:var(--green-deep);margin-bottom:16px;
   }
   .projects__title .accent{color:var(--orange-deep);font-style:italic;}
@@ -576,7 +576,7 @@
   .projects__names li b{color:var(--green-deep);font-weight:700;}
   .projects__sub{
     font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;
-    line-height:1.6;color:var(--ink-faint);max-width:560px;margin:18px auto 0;
+    line-height:1.6;color:var(--ink-soft);max-width:560px;margin:18px auto 0;
   }
 
   /* —— coverflow 椭圆轨道舞台（下弯弧线 ∪）—— */
@@ -590,7 +590,7 @@
   }
   /* 卡片：纯实色不透明，暖纸基，无描边与内色统一 */
   .pcard{
-    position:absolute;width:680px;height:560px;border-radius:10px;
+    position:absolute;width:680px;height:560px;border-radius:var(--radius);
     background:linear-gradient(135deg,#fffef9 0%,#f5f1e6 100%);
     border:1px solid transparent;
     padding:34px 40px;display:flex;flex-direction:column;
@@ -624,7 +624,7 @@
   /* —— 封面图：白底填满框，照片缩小居中，logo 跟着缩小 1/3 —— */
   .pcard__cover{
     position:relative;height:230px;overflow:hidden;margin-bottom:32px;
-    border:none;border-radius:6px;
+    border:none;border-radius:var(--radius-sm);
     background:#ffffff;
     display:flex;align-items:center;justify-content:center;
   }
@@ -707,30 +707,25 @@
 
   /* —— Skills & Life 抽卡 —— */
   .draw{
-    padding:140px 5vw 120px;max-width:1080px;margin:0 auto;position:relative;z-index:3;
+    padding:140px 5vw 110px;max-width:1080px;margin:0 auto;position:relative;z-index:3;
   }
-  .draw__head{max-width:780px;margin:0 auto 48px;text-align:center;}
-  .draw__eyebrow{
-    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
-    letter-spacing:0.22em;text-transform:uppercase;color:var(--orange-deep);opacity:0.75;
-    margin:0 0 10px;
-  }
+  .draw__head{max-width:780px;margin:0 auto 72px;text-align:center;}
   .draw__title{
-    font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5vw,46px);
+    font-family:var(--f-display);font-weight:800;font-size:clamp(30px,4.8vw,52px);
     font-variation-settings:'opsz' 144,'SOFT' 100;
     line-height:1.08;color:var(--green-deep);letter-spacing:-0.025em;margin:0 0 12px;
   }
   .draw__title .accent{color:var(--orange-deep);font-style:italic;}
   .draw__sub{
     font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;line-height:1.6;
-    color:var(--ink-faint);max-width:520px;margin:0 auto;
+    color:var(--ink-soft);max-width:520px;margin:0 auto;
   }
 
   /* 分类 tab */
   /* 分类分段控件（segmented） */
   .draw__tabs{
     display:flex;gap:4px;justify-content:center;margin:26px auto 30px;
-    padding:5px;border-radius:14px;
+    padding:5px;border-radius:var(--radius);
     background:rgba(31,67,50,0.06);border:1px solid rgba(31,67,50,0.08);
     width:fit-content;margin-left:auto;margin-right:auto;
   }
@@ -758,7 +753,7 @@
   }
   .draw__btn{
     font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;
-    padding:13px 30px;border-radius:12px;cursor:pointer;border:none;
+    padding:13px 30px;border-radius:var(--radius-sm);cursor:pointer;border:none;
     background:var(--green-deep);color:var(--cream);letter-spacing:0.03em;
     box-shadow:0 6px 18px rgba(31,67,50,0.30),inset 0 1px 0 rgba(255,255,255,0.12);
     transition:transform 0.3s cubic-bezier(0.22,1,0.36,1),box-shadow 0.3s,background 0.3s;
@@ -800,7 +795,7 @@
     aspect-ratio:3/4;will-change:transform;
   }
   .gcard__face{
-    position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;
+    position:absolute;inset:0;border-radius:var(--radius);backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     overflow:hidden;
@@ -895,7 +890,7 @@
 
   /* —— CONTACT ME 结尾 —— */
   .farewell{
-    position:relative;padding:160px 5vw 120px;margin-top:40px;
+    position:relative;padding:180px 5vw 110px;
     background:linear-gradient(180deg,transparent 0%,rgba(31,67,50,0.04) 30%,rgba(31,67,50,0.10) 100%);
     overflow:hidden;z-index:3;
   }
@@ -906,16 +901,16 @@
     filter:blur(40px);pointer-events:none;animation:glowPulse 6s ease-in-out infinite;
   }
   .farewell__inner{
-    position:relative;max-width:760px;margin:0 auto;text-align:center;
+    position:relative;max-width:900px;margin:0 auto;text-align:center;
   }
   .farewell__eyebrow{
-    font-family:'Cormorant',serif;font-style:italic;font-weight:500;
-    font-size:15px;color:var(--green);opacity:0.85;letter-spacing:0.04em;
-    margin:0 0 22px;
+    font-family:'Cormorant',serif;font-style:italic;font-weight:600;
+    font-size:20px;color:var(--green);opacity:0.9;letter-spacing:0.03em;
+    margin:0 0 26px;
   }
   .farewell__quote{
-    font-family:'DM Sans',sans-serif;font-weight:700;
-    font-size:clamp(26px,4.6vw,42px);line-height:1.32;
+    font-family:var(--f-body);font-weight:700;
+    font-size:clamp(26px,4.4vw,44px);line-height:1.34;
     color:var(--green-deep);letter-spacing:-0.01em;margin:0 0 24px;
   }
   .farewell__quote .accent{
@@ -942,7 +937,7 @@
   .ct-btn--solid{
     background:var(--green-deep);color:var(--cream);border:1px solid var(--green-deep);
   }
-  .ct-btn--solid:hover{background:var(--green);border-color:var(--green);transform:translateY(-2px);}
+  .ct-btn--solid:hover{background:var(--orange-deep);border-color:var(--orange-deep);transform:translateY(-2px);}
   .ct-btn--ghost{
     background:transparent;color:var(--green-deep);border:1px solid rgba(31,67,50,0.28);
   }
@@ -954,7 +949,7 @@
     padding-top:36px;border-top:1px solid rgba(31,67,50,0.08);
   }
   .farewell__sign-name{
-    font-family:'DM Sans',sans-serif;font-weight:700;font-size:24px;
+    font-family:var(--f-body);font-weight:700;font-size:24px;
     color:var(--green-deep);letter-spacing:0.01em;
   }
   .farewell__sign-role{
@@ -976,7 +971,7 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 
   @media(max-width:680px){
-    .farewell{padding:80px 5vw 60px;}
+    .farewell{padding:96px 5vw 64px;}
     .farewell__contact{flex-direction:column;align-items:stretch;}
     .ct-btn{justify-content:flex-start;}
   }
@@ -995,7 +990,7 @@
   .pmodal.is-open .pmodal__overlay{opacity:1;}
   .pmodal__panel{
     position:relative;max-width:680px;width:100%;max-height:86vh;overflow-y:auto;
-    background:var(--cream);border-radius:22px;
+    background:var(--cream);border-radius:var(--radius-lg);
     box-shadow:0 30px 80px rgba(20,40,30,0.4);
     transform:translateY(24px) scale(0.97);opacity:0;
     transition:transform 0.4s cubic-bezier(0.16,1,0.3,1),opacity 0.4s ease;
@@ -1066,8 +1061,9 @@
     .tag.t1{top:5%;left:4%;} .tag.t2{top:42%;left:0%;} .tag.t3{top:80%;left:4%;}
     .tag.t4{top:5%;right:4%;} .tag.t5{top:42%;right:0%;} .tag.t6{top:80%;right:4%;}
     .intro{font-size:15px;}
+    /* 移动端 section padding 统一收窄 */
+    .about,.projects,.draw{padding:88px 5vw 64px;}
     /* 时间线移动端：竖线靠左，卡片单列右移 */
-    .about{padding:96px 5vw 80px;}
     .timeline__spine{left:22px;transform:none;}
     .timeline__progress{left:22px;transform:none;}
     .tnode{grid-template-columns:44px 1fr;gap:14px;margin-bottom:32px;}
@@ -1161,7 +1157,7 @@
   <!-- ============ ABOUT ME · 人生轨迹动态时间线 ============ -->
   <section class="about" id="about">
     <div class="about__head">
-      <p class="about__eyebrow">my journey</p>
+      <p class="about__eyebrow">about me</p>
       <h2 class="about__title">The road that brought me <span class="accent">here</span></h2>
       <p class="about__sub">从信管本科到智驾数据科学，一路把业务问题翻译成可量化的指标与自动化的流程。</p>
     </div>
@@ -1248,7 +1244,7 @@
   <!-- ============ PROJECTS 亮眼前瞻项目 ============ -->
   <section class="projects" id="project">
     <div class="projects__head">
-      <p class="projects__eyebrow">selected work</p>
+      <p class="projects__eyebrow">project</p>
       <h2 class="projects__title">Things I <span class="accent">built &amp; measured</span></h2>
       <ul class="projects__names">
         <li><span class="n">01</span><b>版本回退监控 Agent 开发</b></li>
